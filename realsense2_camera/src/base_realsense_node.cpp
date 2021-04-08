@@ -2481,6 +2481,9 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
                                      const std::map<rs2_stream, std::string>& encoding,
                                      bool copy_data_from_frame)
 {
+	static ros::Time start = ros::Time::now();
+	static int cnt = 0;
+
     ROS_DEBUG("publishFrame(...)");
     unsigned int width = 0;
     unsigned int height = 0;
@@ -2537,7 +2540,16 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         image_publisher.first.publish(img);
         // ROS_INFO_STREAM("fid: " << cam_info.header.seq << ", time: " << std::setprecision (20) << t.toSec());
         ROS_DEBUG("%s stream published", rs2_stream_to_string(f.get_profile().stream_type()));
+
+        cnt++;
+        if((ros::Time::now() - start).toSec() >= 1.0)
+        {
+        	ROS_INFO("Frames are being published at %d hz", cnt);
+        	cnt = 0;
+        	start = ros::Time::now();
+        }
     }
+
 }
 
 bool BaseRealSenseNode::getEnabledProfile(const stream_index_pair& stream_index, rs2::stream_profile& profile)
